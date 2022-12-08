@@ -1,0 +1,23 @@
+# We have an executable, level0
+# I run it and segfault, so I use the magic gdb
+# I disas the main, to check where the segfault could be, and I run it nexti by nexti
+
+# I find that I crash main+25 on the cmp
+# But why ? Dunno, my var $eax empty ? Maybe I forget to but the ags, ups
+
+# I run it with a random stuff ./level0 0
+> No !
+
+# I run it back with gdb --args level0 0
+#bingo +25 don't segfault, so read content of the var $0x1a7,%eax
+p $eax
+> 0
+p 0x1a7
+> 423
+
+# So i run ./level 423
+# Bingo a shell open
+whoami
+>level1
+cat /home/user/level1/.pass
+> 1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
