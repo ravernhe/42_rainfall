@@ -91,7 +91,8 @@ a b
  
  # Call the function "p" 2 time (our 2 inputs) and then strcat them together
  # We can also see that when we call our "p" function, we pass as arguments, the address of local variable in our ebp, that are 20 bytes appart !
- # We can see that we call strcpy to add a " " at the end of our first string
+ # We can see that we call strcpy to put our first string in the buffer main has provided (size 42) and then add a " " char to it.
+ # Then it call strcat to merge the two strings together
 
 080485a4 <main>:
  80485a4:	55                   	push   %ebp
@@ -107,11 +108,35 @@ a b
  80485c5:	b8 00 00 00 00       	mov    $0x0,%eax
  80485ca:	c9                   	leave
  
+ # Create a buffer of size 42 (64-16) and send it to "pp", then it "puts" the string returned by "pp"
  
- # Call "pp" and then puts the string that strcat create in "pp"
  
+ # Ok so the plan is simple, if we put more than 20 char in our first input, the first string will be non null terminated !
+ # We also saw that the second input is stored next to our first, meaning that in the strcpy the first string and the second one will be "smashed" together
+ # So we can fill the buffer of size 42 with 41 char (1st str + 2nd str + " ")
+ # Then in the strcat it will try to put the 2nd str in the buffer (witch is already full and will overflow) and we will have 20-1 bytes overflow to have fun
+ # Recap : we need 1st str to be more than 20 char, 2nd str to be exactly 20 char, so 2n *d str will be writen out of strcat
  
- # Ok so the plan is simple, if we put more than 20 char in our first input, the first string in our strcat will be non null terminated !
- # We also saw that the second input is stored next to our first, witch mean the strcat will take both of our string as only 1 and take the second one again for the second argument
- # strcat : [first input without \0][second input] + " " + [second input] + "\0"
- # 
+ Finding the offset : 
+
+Starting program: /home/user/bonus0/bonus0
+ - 
+01234567890123456789
+ -
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+01234567890123456789Aa0Aa1Aa2Aa3Aa4Aa5Aa Aa0Aa1Aa2Aa3Aa4Aa5Aa
+
+Program received signal SIGSEGV, Segmentation fault.
+0x41336141 in ?? ()
+
+We found the EIP offset to be 9 ! 
+
+We need to put our shellcode after the overflow so we can access it easy ! So we need it between +61 and 4096 ! And use the overflow to point the eip on our shellcode
+
+We decided to arbitrary put 500 NOP instruction before our shell code so we can find it more easyly
+
+payload : 
+# first arg : [NOP * 500] + [shellcode]
+# scond arg : [offset (9)] + [Address in our nop instructions (+61 to +500)] + [filler to get to 20 bytes]
+
+
