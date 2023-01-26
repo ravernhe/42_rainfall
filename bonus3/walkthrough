@@ -59,3 +59,13 @@ $ cat /home/user/end/.pass
 3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
 
 WE DID IT, IT'S OVER BRRRRRRRRRR
+
+bonus3@RainFall:~$ su end
+Password: 
+end@RainFall:~$ ls
+end
+end@RainFall:~$ cat end 
+Congratulations graduate!
+
+Secret end of Rainfall > Secret end of Endgame
+
