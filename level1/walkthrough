@@ -1,7 +1,7 @@
 > ls -l
 -rwsr-s---+ 1 level2 users 5138 Mar  6  2016 level1
 
-# s mean it's run has if level2 run it
+# s mean it run has if level2 run it
 >./level01 # Wait input
 XXXX
 
