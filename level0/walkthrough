@@ -1,19 +1,13 @@
 # We have an executable, level0
-# I run it and segfault, so I use the magic gdb
-# I disas the main, to check where the segfault could be, and I run it nexti by nexti
-
-# I find that I crash main+25 on the cmp
-# But why ? Dunno, my var $eax empty ? Maybe I forget to but the ags, ups
-
+# I run it and segfault
 # I run it with a random stuff ./level0 0
 > No !
+scp -P 4242 level0@192.168.56.102:~/level0 .
+I open it in the almighty ghidra
 
-# I run it back with gdb --args level0 0
-#bingo +25 don't segfault, so read content of the var $0x1a7,%eax
-p $eax
-> 0
-p 0x1a7
-> 423
+if (iVar1 == 0x1a7) {   ----> important part, iVar1 is our arg, 0x1a7 is 423 in hexadecimal, very easy 
+    local_20 = strdup("/bin/sh");  ----> it open a shell with the right user to get our flag
+
 
 # So i run ./level 423
 # Bingo a shell open
