@@ -1,16 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int		run(void)
+void run(void)
+
 {
-	fwrite("Good... Wait what?\n", 19, 1, stdout);
-	return (system("/bin/sh"));
+  fwrite("Good... Wait what?\n",1,0x13,stdout);
+  system("/bin/sh");
+  return;
 }
 
-int		main(void)
-{
-	char	buffer[64];   //0x50 - 0x10 = 64
+void main(void)
 
-	gets(buffer);
-	return (0);
+{
+  char local_50 [76];
+  
+  gets(local_50);
+  return;
 }
+
