@@ -10,7 +10,7 @@ XXXX
 > objdump -d level1 # We see that the main function call get that is know to be not secure
  8048490:	e8 ab fe ff ff       	call   8048340 <gets@plt>
  
- # And there is this function that seems to need get call
+ # And there is this function that seems to need to get call
  08048444 <run>
  
  # Run contain fwrite and system func
@@ -24,7 +24,7 @@ XXXX
 
 
 # So we think it's a buffer overflow to run the run function witch call "/bin/sh", we use lscpu to check the endian type
-[buffer][padding][adress_you_acess] # Buffer Overflow Blueprint
+[buffer][padding][adress_you_access] # Buffer Overflow Blueprint
 
 # So we need to send
 > [c*76][][\x44\x84\x04x\08]
