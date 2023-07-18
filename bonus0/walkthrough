@@ -108,7 +108,7 @@ a b
  80485c5:	b8 00 00 00 00       	mov    $0x0,%eax
  80485ca:	c9                   	leave
  
- # Create a buffer of size 42 (64-16) and send it to "pp", then it "puts" the string returned by "pp"
+ # Create a buffer of size 42 (0x40-0x16) and send it to "pp", then it "puts" the string returned by "pp"
  
  
  # Ok so the plan is simple, if we put more than 20 char in our first input, the first string will be non null terminated !
