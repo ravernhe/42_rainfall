@@ -13,7 +13,7 @@ void n(void) {
   fgets(input, 512, stdin);
   p(input);
 
-  if (m == 0x1025544) {
+  if (m == 16930116) {
     system("/bin/cat /home/user/level5/.pass");
   }
 }
