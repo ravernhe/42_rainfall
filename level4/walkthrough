@@ -1,6 +1,7 @@
 # SAME AS BEFORE BUT  %[12]n
 # AND CAUSE THE INT IS TO MUCH CHAR THAN WHAT WE CAN PUT IN THE FGETS WHO HAS A BUFFER OF 512 BUT CAN'T DO AS BEFORE
 # SO THERE IS ANOTHER TECH TO USE printf(%d)
+# %d, %i The precision, if any, gives the minimum number of digits that must appear ---> fill with 0 the [number] between % and d or i -> %[number]d
 Ex : 
 > printf("%05d", 1);
 00001
