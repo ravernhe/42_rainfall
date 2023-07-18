@@ -6,7 +6,7 @@
  0x08048688 <+148>:	mov    %eax,0x4(%esp)
  0x0804868c <+152>:	mov    0x10(%esp),%eax
  0x08048690 <+156>:	mov    %eax,(%esp)
- 0x08048693 <+159>:	call   *%edx # HERE IT'LL WILL THE FUNCTION IN edx
+ 0x08048693 <+159>:	call   *%edx # HERE IT'LL CALL THE FUNCTION STORED IN edx
  
  0804870e <_ZN1N13setAnnotationEPc>:
  804870e:	55                   	push   %ebp
